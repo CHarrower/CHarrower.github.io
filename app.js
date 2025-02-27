@@ -81,21 +81,27 @@ const App = () => {
   // Station information with travel times from reference stations
   // Time values are in minutes relative to the starting reference stations
   const stations = [
-    { id: 'govan', name: 'Govan', innerRef: 0, outerRef: 12 }, // Reference station for Inner Circle
+    { id: 'govan', name: 'Govan', innerRef: 0, outerRef: 12 },
     { id: 'partick', name: 'Partick', innerRef: 3, outerRef: 9 },
     { id: 'kelvinhall', name: 'Kelvinhall', innerRef: 5, outerRef: 7 },
     { id: 'hillhead', name: 'Hillhead', innerRef: 7, outerRef: 5 },
     { id: 'kelvinbridge', name: 'Kelvinbridge', innerRef: 9, outerRef: 3 },
-    { id: 'stgeorges', name: 'St. George\'s Cross', innerRef: 11, outerRef: 1 },
-    { id: 'cowcaddens', name: 'Cowcaddens', innerRef: 13, outerRef: 23 },
-    { id: 'buchananst', name: 'Buchanan Street', innerRef: 15, outerRef: 21 },
-    { id: 'stEnoch', name: 'St Enoch', innerRef: 17, outerRef: 19 }, // Reference station for Outer Circle
-    { id: 'bridge', name: 'Bridge Street', innerRef: 19, outerRef: 17 },
-    { id: 'westst', name: 'West Street', innerRef: 21, outerRef: 15 },
-    { id: 'shields', name: 'Shields Road', innerRef: 22, outerRef: 14 },
-    { id: 'kinning', name: 'Kinning Park', innerRef: 23, outerRef: 13 },
-    { id: 'cessnock', name: 'Cessnock', innerRef: 1, outerRef: 11 },
-    { id: 'ibrox', name: 'Ibrox', innerRef: 2, outerRef: 10 }
+    { id: 'stgeorges', name: 'St. George\'s Cross', innerRef: 10, outerRef: 2 },
+    { id: 'cowcaddens', name: 'Cowcaddens', innerRef: 11, outerRef: 1 },
+    // Based on your journey data: 4 minutes from St. Enoch to Buchanan St
+    { id: 'buchananst', name: 'Buchanan Street', innerRef: 14, outerRef: 22 },
+    { id: 'stEnoch', name: 'St Enoch', innerRef: 10, outerRef: 18 },
+    // Based on your journey data: 1 minute from Bridge St to St. Enoch
+    { id: 'bridge', name: 'Bridge Street', innerRef: 9, outerRef: 17 },
+    // Based on your journey data: 1 minute from West St to Bridge St
+    { id: 'westst', name: 'West Street', innerRef: 8, outerRef: 16 },
+    // Based on your journey data: 2 minutes from Shields Rd to West St
+    { id: 'shields', name: 'Shields Road', innerRef: 6, outerRef: 14 },
+    // Based on your journey data: 2 minutes from Kinning Park to Shields Rd
+    { id: 'kinning', name: 'Kinning Park', innerRef: 4, outerRef: 12 },
+    // Based on your journey data: 1 minute from Cessnock to Kinning Park
+    { id: 'cessnock', name: 'Cessnock', innerRef: 3, outerRef: 11 },
+    { id: 'ibrox', name: 'Ibrox', innerRef: 1, outerRef: 10 }
   ];
   
   // Service hours in minutes from midnight
