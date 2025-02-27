@@ -1,4 +1,9 @@
-// SVG Icons
+//===============================================
+// ICON COMPONENTS
+//===============================================
+// SVG icons used throughout the application
+// Each icon is a functional component that returns an SVG element
+// Props: size - determines the width and height of the icon (default: 24px)
 const TrainIcon = ({ size = 24 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="4" y="3" width="16" height="16" rx="2"/>
@@ -52,7 +57,12 @@ const ThumbsDownIcon = ({ size = 24 }) => (
   </svg>
 );
 
-// Function to generate a simple device fingerprint
+//===============================================
+// DEVICE FINGERPRINTING
+//===============================================
+// Creates a unique identifier for each device based on browser properties
+// Used to prevent spam and track feedback submissions
+// Returns a hexadecimal hash string
 const getDeviceFingerprint = () => {
   // Create a simple fingerprint based on browser and screen properties
   const screenProps = `${window.screen.height}x${window.screen.width}x${window.screen.colorDepth}`;
@@ -75,7 +85,11 @@ const getDeviceFingerprint = () => {
 
 // Main App Component
 const App = () => {
-  // Define constants for subway configuration
+  //===============================================
+  // APP CONFIGURATION
+  //===============================================
+  // Core constants and configuration for the subway system
+  // Includes circuit time, station information, and service hours
   const CIRCUIT_TIME = 24; // Complete circuit takes 24 minutes
   
   // Station information with travel times from reference stations
@@ -124,7 +138,12 @@ const App = () => {
     }
   };
 
-  // App state
+  //===============================================
+  // STATE MANAGEMENT
+  //===============================================
+  // Initialize all state variables with localStorage persistence
+  // Includes current time, train schedules, selected station/direction, 
+  // dark mode preference, and user feedback data
   const [currentTime, setCurrentTime] = React.useState(new Date());
   const [trainsByDirection, setTrainsByDirection] = React.useState({ inner: [], outer: [] });
   const [selectedStation, setSelectedStation] = React.useState(() => {
@@ -159,7 +178,11 @@ const App = () => {
   const [feedbackTrain, setFeedbackTrain] = React.useState(null);
   const [actualArrivalTime, setActualArrivalTime] = React.useState('');
 
-  // Save preferences and feedback data
+  //===============================================
+  // DATA PERSISTENCE
+  //===============================================
+  // useEffect hooks to save user preferences and feedback to localStorage
+  // Triggers when relevant state values change
   React.useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
@@ -176,7 +199,10 @@ const App = () => {
     localStorage.setItem('trainFeedback', JSON.stringify(trainFeedback));
   }, [trainFeedback]);
 
-  // Find a station by its ID
+  //===============================================
+  // UTILITY FUNCTIONS
+  //===============================================
+  // Helper functions for finding stations and checking service status
   const findStation = (stationId) => {
     return stations.find(s => s.id === stationId) || stations[0];
   };
@@ -194,7 +220,11 @@ const App = () => {
     return currentMinutes >= start && currentMinutes <= end;
   };
 
-  // Calculate train schedules
+  //===============================================
+  // TRAIN SCHEDULE CALCULATION
+  //===============================================
+  // Core logic for calculating train arrival times
+  // Handles both inner and outer circle routes
   const calculateTrains = () => {
     if (!isServiceRunning()) {
       setTrainsByDirection({ inner: [], outer: [] });
@@ -228,6 +258,11 @@ const App = () => {
     });
   };
   
+  //===============================================
+  // TRAIN GENERATION
+  //===============================================
+  // Functions to generate train schedules for both circle directions
+  // Calculates arrival times based on frequency and station positions
   // Generate Inner Circle (clockwise) trains
   const generateInnerCircleTrains = (currentTimeInMinutes, frequency, service) => {
     const selectedStationInfo = findStation(selectedStation);
@@ -331,7 +366,11 @@ const App = () => {
     }
   };
   
-  // Handle train feedback with anti-spam measures
+  //===============================================
+  // USER INTERACTION HANDLERS
+  //===============================================
+  // Functions to handle user feedback and input validation
+  // Includes spam prevention and time validation logic
   const handleTrainFeedback = (train, wasOnTime) => {
     // Check for spam - limit feedback to trains that are within a reasonable time window
     // Only allow feedback for trains arriving within 5 minutes
@@ -446,6 +485,11 @@ const App = () => {
     calculateTrains();
   }, [currentTime, selectedStation]);
 
+  //===============================================
+  // RENDER LOGIC
+  //===============================================
+  // Component rendering logic including the main UI structure
+  // Handles dark mode, station selection, and train display
   return (
     <div className={`container ${darkMode ? 'dark' : 'light'}`}>
       <div className={`card ${darkMode ? 'dark' : 'light'}`}>
@@ -656,7 +700,10 @@ const App = () => {
   );
 };
 
-// Create root and render app
+//===============================================
+// APP INITIALIZATION
+//===============================================
+// Create root and render the React application
 const rootElement = document.getElementById('root');
 const root = ReactDOM.createRoot(rootElement);
 root.render(<App />);
