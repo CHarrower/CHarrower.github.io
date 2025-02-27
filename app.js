@@ -23,7 +23,7 @@ const ClockIcon = ({ size = 24 }) => (
 
 const MoonIcon = ({ size = 24 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3a6.364 6.364 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+    <path d="M12 3a6.364 6.364 0 0 0 9 9 9 0 1 1-9-9Z"/>
   </svg>
 );
 
@@ -284,7 +284,7 @@ const App = () => {
       // Only include trains that haven't arrived yet and are within the service hours
       const minutesUntil = Math.ceil(arrivalTime - currentTimeInMinutes);
       
-      if (minutesUntil > 0 && arrivalTime <= service.end + CIRCUIT_TIME) {
+      if (minutesUntil > -1 && arrivalTime <= service.end + CIRCUIT_TIME) {
         // Convert to hours and minutes for display
         const arrivalHour = Math.floor(arrivalTime / 60) % 24;
         const arrivalMinute = Math.floor(arrivalTime % 60);
@@ -328,7 +328,7 @@ const App = () => {
       // Only include trains that haven't arrived yet and are within the service hours
       const minutesUntil = Math.ceil(arrivalTime - currentTimeInMinutes);
       
-      if (minutesUntil > 0 && arrivalTime <= service.end + CIRCUIT_TIME) {
+      if (minutesUntil > -1 && arrivalTime <= service.end + CIRCUIT_TIME) {
         // Convert to hours and minutes for display
         const arrivalHour = Math.floor(arrivalTime / 60) % 24;
         const arrivalMinute = Math.floor(arrivalTime % 60);
@@ -592,7 +592,7 @@ const App = () => {
                           <TrainIcon size={20} />
                           <span className="train-time-text">{train.time}</span>
                           <span className="arriving-soon">
-                            {train.minutesUntil < 1 ? 'Arriving now' : 
+                            {train.minutesUntil <= 0 ? 'Arriving now' : 
                              train.minutesUntil === 1 ? 'In 1 min' : 
                              `In ${train.minutesUntil} mins`}
                           </span>
