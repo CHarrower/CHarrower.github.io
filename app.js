@@ -282,7 +282,7 @@ const App = () => {
       const arrivalTime = trainTime + timeToSelectedStation;
       
       // Only include trains that haven't arrived yet and are within the service hours
-      const minutesUntil = Math.round(arrivalTime - currentTimeInMinutes);
+      const minutesUntil = Math.ceil(arrivalTime - currentTimeInMinutes);
       
       if (minutesUntil > 0 && arrivalTime <= service.end + CIRCUIT_TIME) {
         // Convert to hours and minutes for display
@@ -326,7 +326,7 @@ const App = () => {
       const arrivalTime = trainTime + timeToSelectedStation;
       
       // Only include trains that haven't arrived yet and are within the service hours
-      const minutesUntil = Math.round(arrivalTime - currentTimeInMinutes);
+      const minutesUntil = Math.ceil(arrivalTime - currentTimeInMinutes);
       
       if (minutesUntil > 0 && arrivalTime <= service.end + CIRCUIT_TIME) {
         // Convert to hours and minutes for display
@@ -592,7 +592,9 @@ const App = () => {
                           <TrainIcon size={20} />
                           <span className="train-time-text">{train.time}</span>
                           <span className="arriving-soon">
-                            {train.minutesUntil <= 1 ? 'Arriving now' : `in ${train.minutesUntil} min`}
+                            {train.minutesUntil < 1 ? 'Arriving now' : 
+                             train.minutesUntil === 1 ? 'In 1 min' : 
+                             `In ${train.minutesUntil} mins`}
                           </span>
                         </div>
                         <span className="direction-badge">
