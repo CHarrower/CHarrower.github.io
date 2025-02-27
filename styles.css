@@ -227,15 +227,15 @@ body {
 }
 
 .train-card.inner {
-  background: linear-gradient(to right, #f97316, #fb923c);
-}
-
-.train-card.outer.light {
   background: linear-gradient(to right, #4b5563, #6b7280);
 }
 
+.train-card.outer.light {
+  background: linear-gradient(to right, #f97316, #fb923c); 
+}
+
 .train-card.outer.dark {
-  background: linear-gradient(to right, #374151, #4b5563);
+  background: linear-gradient(to right, #f97316, #fb923c);
 }
 
 .train-info {
