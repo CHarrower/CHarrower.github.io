@@ -91,6 +91,7 @@ const App = () => {
   // Core constants and configuration for the subway system
   // Includes circuit time, station information, and service hours
   const CIRCUIT_TIME = 24; // Complete circuit takes 24 minutes
+  const TIME_OFFSET = 2; // 2-minute correction factor
   
   // Station information with travel times from reference stations
   // Time values are in minutes relative to the starting reference stations
@@ -279,7 +280,7 @@ const App = () => {
     // Generate trains for the full service day
     for (let trainTime = startTime; trainTime <= endTime; trainTime += frequency) {
       // Time when this train reaches the selected station
-      const arrivalTime = trainTime + timeToSelectedStation;
+      const arrivalTime = (trainTime + timeToSelectedStation - TIME_OFFSET);
       
       // Only include trains that haven't arrived yet and are within the service hours
       const minutesUntil = Math.ceil(arrivalTime - currentTimeInMinutes);
@@ -323,7 +324,7 @@ const App = () => {
     // Generate trains for the full service day
     for (let trainTime = startTime; trainTime <= endTime; trainTime += frequency) {
       // Time when this train reaches the selected station
-      const arrivalTime = trainTime + timeToSelectedStation;
+      const arrivalTime = (trainTime + timeToSelectedStation - TIME_OFFSET);
       
       // Only include trains that haven't arrived yet and are within the service hours
       const minutesUntil = Math.ceil(arrivalTime - currentTimeInMinutes);
