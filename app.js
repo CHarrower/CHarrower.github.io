@@ -317,6 +317,67 @@ const App = () => {
     return trains.slice(0, 3);
   };
 
+  // Adjust train times based on feedback
+  const adjustTrainTimes = (feedback) => {
+    const adjustedTrains = { inner: [], outer: [] };
+
+    // Adjust inner circle trains
+    trainsByDirection.inner.forEach(train => {
+      const feedbackForTrain = feedback[train.id];
+      if (feedbackForTrain && !feedbackForTrain.wasOnTime) {
+        const actualTime = feedbackForTrain.actualTime.split(':').map(Number);
+        const actualTotalMinutes = actualTime[0] * 60 + actualTime[1];
+        const scheduledTime = train.time.split(':').map(Number);
+        const scheduledTotalMinutes = scheduledTime[0] * 60 + scheduledTime[1];
+        const timeDifference = actualTotalMinutes - scheduledTotalMinutes;
+
+        // Adjust times for all subsequent stations
+        stations.forEach(station => {
+          const adjustedTime = (scheduledTotalMinutes + station.innerRef + timeDifference) % (24 * 60);
+          const adjustedHour = Math.floor(adjustedTime / 60);
+          const adjustedMinute = adjustedTime % 60;
+          const adjustedTimeStr = `${String(adjustedHour).padStart(2, '0')}:${String(adjustedMinute).padStart(2, '0')}`;
+          adjustedTrains.inner.push({
+            ...train,
+            time: adjustedTimeStr,
+            station: station.id
+          });
+        });
+      } else {
+        adjustedTrains.inner.push(train);
+      }
+    });
+
+    // Adjust outer circle trains
+    trainsByDirection.outer.forEach(train => {
+      const feedbackForTrain = feedback[train.id];
+      if (feedbackForTrain && !feedbackForTrain.wasOnTime) {
+        const actualTime = feedbackForTrain.actualTime.split(':').map(Number);
+        const actualTotalMinutes = actualTime[0] * 60 + actualTime[1];
+        const scheduledTime = train.time.split(':').map(Number);
+        const scheduledTotalMinutes = scheduledTime[0] * 60 + scheduledTime[1];
+        const timeDifference = actualTotalMinutes - scheduledTotalMinutes;
+
+        // Adjust times for all subsequent stations
+        stations.forEach(station => {
+          const adjustedTime = (scheduledTotalMinutes + station.outerRef + timeDifference) % (24 * 60);
+          const adjustedHour = Math.floor(adjustedTime / 60);
+          const adjustedMinute = adjustedTime % 60;
+          const adjustedTimeStr = `${String(adjustedHour).padStart(2, '0')}:${String(adjustedMinute).padStart(2, '0')}`;
+          adjustedTrains.outer.push({
+            ...train,
+            time: adjustedTimeStr,
+            station: station.id
+          });
+        });
+      } else {
+        adjustedTrains.outer.push(train);
+      }
+    });
+
+    setTrainsByDirection(adjustedTrains);
+  };
+
   // Get trains for current view based on selected direction
   const getTrainsForCurrentView = () => {
     if (selectedDirection === 'inner') {
@@ -445,6 +506,11 @@ const App = () => {
   React.useEffect(() => {
     calculateTrains();
   }, [currentTime, selectedStation]);
+
+  // Call adjustTrainTimes whenever feedback is updated
+  React.useEffect(() => {
+    adjustTrainTimes(trainFeedback);
+  }, [trainFeedback]);
 
   return (
     <div className={`container ${darkMode ? 'dark' : 'light'}`}>
