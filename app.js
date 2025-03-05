@@ -525,6 +525,30 @@ const App = () => {
     calculateTrains();
   }, [currentTime, selectedStation]);
 
+  const FeedbackSummary = () => {
+    const averageDelays = analyzeFeedbackPatterns();
+    const currentStationDelays = {
+      inner: averageDelays[`${selectedStation}-Inner Circle`] || 0,
+      outer: averageDelays[`${selectedStation}-Outer Circle`] || 0
+    };
+
+    return (
+      <div className={`feedback-summary ${darkMode ? 'dark' : 'light'}`}>
+        <small>
+          Based on recent feedback:
+          {currentStationDelays.inner !== 0 && 
+            ` Inner Circle trains ${Math.abs(currentStationDelays.inner)} mins 
+             ${currentStationDelays.inner > 0 ? 'late' : 'early'}`}
+          {currentStationDelays.outer !== 0 && 
+            ` • Outer Circle trains ${Math.abs(currentStationDelays.outer)} mins 
+             ${currentStationDelays.outer > 0 ? 'late' : 'early'}`}
+          {currentStationDelays.inner === 0 && currentStationDelays.outer === 0 && 
+            ' Trains running to schedule'}
+        </small>
+      </div>
+    );
+  };
+
   //===============================================
   // RENDER LOGIC
   //===============================================
