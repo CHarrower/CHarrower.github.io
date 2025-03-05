@@ -617,10 +617,10 @@ const App = () => {
 
           {isServiceRunning() ? (
             <div>
-              <FeedbackSummary />
               <h3 className={`train-title ${darkMode ? 'dark' : 'light'}`}>
                 Next Trains:
               </h3>
+              <FeedbackSummary />
               <div className="trains-container">
                 {getTrainsForCurrentView().length > 0 ? (
                   getTrainsForCurrentView().map(train => (
