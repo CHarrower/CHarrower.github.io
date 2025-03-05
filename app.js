@@ -539,30 +539,8 @@ const App = () => {
     // Only trigger on Ctrl+Shift+E (Windows/Linux) or Cmd+Shift+E (Mac)
     if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'E') {
       try {
-        const feedback = await fetchFeedback();
-        
-        // Format the data for CSV
-        const csvData = feedback.map(item => ({
-          trainId: item.trainId,
-          direction: item.trainId.startsWith('inner') ? 'Inner Circle' : 'Outer Circle',
-          station: item.station,
-          scheduledTime: item.scheduledTime,
-          actualTime: item.actualTime || 'N/A',
-          wasOnTime: item.wasOnTime ? 'Yes' : 'No',
-          timeDifference: item.timeDifference || 'N/A',
-          timestamp: new Date(item.timestamp).toLocaleString(),
-          deviceId: item.deviceId
-        }));
-        
-        // Convert to CSV string
-        const headers = Object.keys(csvData[0]);
-        const csvString = [
-          headers.join(','),
-          ...csvData.map(row => headers.map(field => row[field]).join(','))
-        ].join('\n');
-        
-        // Create and trigger download
-        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const response = await fetch(`${API_URL}/export-feedback`);
+        const blob = await response.blob();
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = `subway_feedback_${new Date().toISOString().split('T')[0]}.csv`;
@@ -570,7 +548,6 @@ const App = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
       } catch (error) {
         console.error('Error exporting feedback:', error);
       }

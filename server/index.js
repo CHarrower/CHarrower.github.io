@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const config = require('./config');
+const { Parser } = require('json2csv');
 
 const app = express();
 
@@ -33,6 +34,22 @@ app.get('/api/feedback', async (req, res) => {
             .sort({ timestamp: -1 })
             .limit(100);
         res.json(feedback);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/export-feedback', async (req, res) => {
+    try {
+        const feedback = await Feedback.find().sort({ timestamp: -1 });
+        const fields = ['trainId', 'wasOnTime', 'scheduledTime', 'actualTime', 'timestamp', 'station', 'deviceId', 'timeDifference'];
+        const opts = { fields };
+        const parser = new Parser(opts);
+        const csv = parser.parse(feedback);
+
+        res.header('Content-Type', 'text/csv');
+        res.attachment('feedback.csv');
+        res.send(csv);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
