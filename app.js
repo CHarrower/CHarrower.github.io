@@ -1,9 +1,4 @@
-//===============================================
-// ICON COMPONENTS
-//===============================================
-// SVG icons used throughout the application
-// Each icon is a functional component that returns an SVG element
-// Props: size - determines the width and height of the icon (default: 24px)
+// SVG Icons
 const TrainIcon = ({ size = 24 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="4" y="3" width="16" height="16" rx="2"/>
@@ -23,7 +18,7 @@ const ClockIcon = ({ size = 24 }) => (
 
 const MoonIcon = ({ size = 24 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3a6.364 6.364 0 0 0 9 9 9 0 1 1-9-9Z"/>
+    <path d="M12 3a6.364 6.364 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
   </svg>
 );
 
@@ -57,12 +52,7 @@ const ThumbsDownIcon = ({ size = 24 }) => (
   </svg>
 );
 
-//===============================================
-// DEVICE FINGERPRINTING
-//===============================================
-// Creates a unique identifier for each device based on browser properties
-// Used to prevent spam and track feedback submissions
-// Returns a hexadecimal hash string
+// Function to generate a simple device fingerprint
 const getDeviceFingerprint = () => {
   // Create a simple fingerprint based on browser and screen properties
   const screenProps = `${window.screen.height}x${window.screen.width}x${window.screen.colorDepth}`;
@@ -83,50 +73,10 @@ const getDeviceFingerprint = () => {
   return hash.toString(16); // Convert to hex string
 };
 
-//===============================================
-// FEEDBACK ANALYSIS
-//===============================================
-const analyzeFeedbackPatterns = () => {
-  // Only analyze feedback from the last 24 hours
-  const recentFeedback = Object.values(trainFeedback).filter(feedback => {
-    const feedbackTime = new Date(feedback.timestamp);
-    const hoursDiff = (new Date() - feedbackTime) / (1000 * 60 * 60);
-    return hoursDiff < 24;
-  });
-
-  // Group feedback by station and direction
-  const stationDelays = {};
-  recentFeedback.forEach(feedback => {
-    const key = `${feedback.station}-${feedback.direction}`;
-    if (!stationDelays[key]) {
-      stationDelays[key] = [];
-    }
-    if (feedback.timeDifference) {
-      stationDelays[key].push(feedback.timeDifference);
-    }
-  });
-
-  // Calculate average delays for each station-direction combination
-  const averageDelays = {};
-  Object.entries(stationDelays).forEach(([key, delays]) => {
-    if (delays.length > 0) {
-      const sum = delays.reduce((a, b) => a + b, 0);
-      averageDelays[key] = Math.round(sum / delays.length);
-    }
-  });
-
-  return averageDelays;
-};
-
 // Main App Component
 const App = () => {
-  //===============================================
-  // APP CONFIGURATION
-  //===============================================
-  // Core constants and configuration for the subway system
-  // Includes circuit time, station information, and service hours
+  // Define constants for subway configuration
   const CIRCUIT_TIME = 24; // Complete circuit takes 24 minutes
-  const TIME_OFFSET = 2; // 2-minute correction factor
   
   // Station information with travel times from reference stations
   // Time values are in minutes relative to the starting reference stations
@@ -174,12 +124,7 @@ const App = () => {
     }
   };
 
-  //===============================================
-  // STATE MANAGEMENT
-  //===============================================
-  // Initialize all state variables with localStorage persistence
-  // Includes current time, train schedules, selected station/direction, 
-  // dark mode preference, and user feedback data
+  // App state
   const [currentTime, setCurrentTime] = React.useState(new Date());
   const [trainsByDirection, setTrainsByDirection] = React.useState({ inner: [], outer: [] });
   const [selectedStation, setSelectedStation] = React.useState(() => {
@@ -214,11 +159,7 @@ const App = () => {
   const [feedbackTrain, setFeedbackTrain] = React.useState(null);
   const [actualArrivalTime, setActualArrivalTime] = React.useState('');
 
-  //===============================================
-  // DATA PERSISTENCE
-  //===============================================
-  // useEffect hooks to save user preferences and feedback to localStorage
-  // Triggers when relevant state values change
+  // Save preferences and feedback data
   React.useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
@@ -235,10 +176,7 @@ const App = () => {
     localStorage.setItem('trainFeedback', JSON.stringify(trainFeedback));
   }, [trainFeedback]);
 
-  //===============================================
-  // UTILITY FUNCTIONS
-  //===============================================
-  // Helper functions for finding stations and checking service status
+  // Find a station by its ID
   const findStation = (stationId) => {
     return stations.find(s => s.id === stationId) || stations[0];
   };
@@ -256,11 +194,7 @@ const App = () => {
     return currentMinutes >= start && currentMinutes <= end;
   };
 
-  //===============================================
-  // TRAIN SCHEDULE CALCULATION
-  //===============================================
-  // Core logic for calculating train arrival times
-  // Handles both inner and outer circle routes
+  // Calculate train schedules
   const calculateTrains = () => {
     if (!isServiceRunning()) {
       setTrainsByDirection({ inner: [], outer: [] });
@@ -294,14 +228,8 @@ const App = () => {
     });
   };
   
-  //===============================================
-  // TRAIN GENERATION
-  //===============================================
-  // Functions to generate train schedules for both circle directions
-  // Calculates arrival times based on frequency and station positions
   // Generate Inner Circle (clockwise) trains
   const generateInnerCircleTrains = (currentTimeInMinutes, frequency, service) => {
-    const averageDelays = analyzeFeedbackPatterns();
     const selectedStationInfo = findStation(selectedStation);
     const trains = [];
     
@@ -316,13 +244,12 @@ const App = () => {
     // Generate trains for the full service day
     for (let trainTime = startTime; trainTime <= endTime; trainTime += frequency) {
       // Time when this train reaches the selected station
-      const stationDelay = averageDelays[`${selectedStation}-Inner Circle`] || 0;
-      const arrivalTime = (trainTime + timeToSelectedStation - TIME_OFFSET + stationDelay);
+      const arrivalTime = trainTime + timeToSelectedStation;
       
       // Only include trains that haven't arrived yet and are within the service hours
-      const minutesUntil = Math.ceil(arrivalTime - currentTimeInMinutes);
+      const minutesUntil = Math.round(arrivalTime - currentTimeInMinutes);
       
-      if (minutesUntil > -1 && arrivalTime <= service.end + CIRCUIT_TIME) {
+      if (minutesUntil > 0 && arrivalTime <= service.end + CIRCUIT_TIME) {
         // Convert to hours and minutes for display
         const arrivalHour = Math.floor(arrivalTime / 60) % 24;
         const arrivalMinute = Math.floor(arrivalTime % 60);
@@ -348,7 +275,6 @@ const App = () => {
   
   // Generate Outer Circle (counter-clockwise) trains
   const generateOuterCircleTrains = (currentTimeInMinutes, frequency, service) => {
-    const averageDelays = analyzeFeedbackPatterns();
     const selectedStationInfo = findStation(selectedStation);
     const trains = [];
     
@@ -362,13 +288,12 @@ const App = () => {
     // Generate trains for the full service day
     for (let trainTime = startTime; trainTime <= endTime; trainTime += frequency) {
       // Time when this train reaches the selected station
-      const stationDelay = averageDelays[`${selectedStation}-Outer Circle`] || 0;
-      const arrivalTime = (trainTime + timeToSelectedStation - TIME_OFFSET + stationDelay);
+      const arrivalTime = trainTime + timeToSelectedStation;
       
       // Only include trains that haven't arrived yet and are within the service hours
-      const minutesUntil = Math.ceil(arrivalTime - currentTimeInMinutes);
+      const minutesUntil = Math.round(arrivalTime - currentTimeInMinutes);
       
-      if (minutesUntil > -1 && arrivalTime <= service.end + CIRCUIT_TIME) {
+      if (minutesUntil > 0 && arrivalTime <= service.end + CIRCUIT_TIME) {
         // Convert to hours and minutes for display
         const arrivalHour = Math.floor(arrivalTime / 60) % 24;
         const arrivalMinute = Math.floor(arrivalTime % 60);
@@ -406,11 +331,7 @@ const App = () => {
     }
   };
   
-  //===============================================
-  // USER INTERACTION HANDLERS
-  //===============================================
-  // Functions to handle user feedback and input validation
-  // Includes spam prevention and time validation logic
+  // Handle train feedback with anti-spam measures
   const handleTrainFeedback = (train, wasOnTime) => {
     // Check for spam - limit feedback to trains that are within a reasonable time window
     // Only allow feedback for trains arriving within 5 minutes
@@ -525,35 +446,6 @@ const App = () => {
     calculateTrains();
   }, [currentTime, selectedStation]);
 
-  const FeedbackSummary = () => {
-    const averageDelays = analyzeFeedbackPatterns();
-    const currentStationDelays = {
-      inner: averageDelays[`${selectedStation}-Inner Circle`] || 0,
-      outer: averageDelays[`${selectedStation}-Outer Circle`] || 0
-    };
-
-    return (
-      <div className={`feedback-summary ${darkMode ? 'dark' : 'light'}`}>
-        <small>
-          Based on recent feedback:
-          {currentStationDelays.inner !== 0 && 
-            ` Inner Circle trains ${Math.abs(currentStationDelays.inner)} mins 
-             ${currentStationDelays.inner > 0 ? 'late' : 'early'}`}
-          {currentStationDelays.outer !== 0 && 
-            ` • Outer Circle trains ${Math.abs(currentStationDelays.outer)} mins 
-             ${currentStationDelays.outer > 0 ? 'late' : 'early'}`}
-          {currentStationDelays.inner === 0 && currentStationDelays.outer === 0 && 
-            ' Trains running to schedule'}
-        </small>
-      </div>
-    );
-  };
-
-  //===============================================
-  // RENDER LOGIC
-  //===============================================
-  // Component rendering logic including the main UI structure
-  // Handles dark mode, station selection, and train display
   return (
     <div className={`container ${darkMode ? 'dark' : 'light'}`}>
       <div className={`card ${darkMode ? 'dark' : 'light'}`}>
@@ -644,7 +536,6 @@ const App = () => {
               <h3 className={`train-title ${darkMode ? 'dark' : 'light'}`}>
                 Next Trains:
               </h3>
-              <FeedbackSummary />
               <div className="trains-container">
                 {getTrainsForCurrentView().length > 0 ? (
                   getTrainsForCurrentView().map(train => (
@@ -657,9 +548,7 @@ const App = () => {
                           <TrainIcon size={20} />
                           <span className="train-time-text">{train.time}</span>
                           <span className="arriving-soon">
-                            {train.minutesUntil <= 0 ? 'Arriving now' : 
-                             train.minutesUntil === 1 ? 'In 1 min' : 
-                             `In ${train.minutesUntil} mins`}
+                            {train.minutesUntil <= 1 ? 'Arriving now' : `in ${train.minutesUntil} min`}
                           </span>
                         </div>
                         <span className="direction-badge">
@@ -767,10 +656,7 @@ const App = () => {
   );
 };
 
-//===============================================
-// APP INITIALIZATION
-//===============================================
-// Create root and render the React application
+// Create root and render app
 const rootElement = document.getElementById('root');
 const root = ReactDOM.createRoot(rootElement);
 root.render(<App />);
