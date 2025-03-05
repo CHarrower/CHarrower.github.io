@@ -52,6 +52,9 @@ const ThumbsDownIcon = ({ size = 24 }) => (
   </svg>
 );
 
+// Add these constants at the top of the file, before the App component
+const API_URL = 'http://localhost:3001/api';
+
 // Function to generate a simple device fingerprint
 const getDeviceFingerprint = () => {
   // Create a simple fingerprint based on browser and screen properties
@@ -392,8 +395,20 @@ const App = () => {
     }
   };
   
-  // Handle train feedback with anti-spam measures
-  const handleTrainFeedback = (train, wasOnTime) => {
+  // Add these new functions after your existing state declarations
+  const fetchFeedback = async () => {
+    try {
+      const response = await fetch(`${API_URL}/feedback`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching feedback:', error);
+      return [];
+    }
+  };
+
+  // Modify your existing handleTrainFeedback function
+  const handleTrainFeedback = async (train, wasOnTime) => {
     // Check for spam - limit feedback to trains that are within a reasonable time window
     // Only allow feedback for trains arriving within 5 minutes
     if (train.minutesUntil > 5) {
@@ -415,6 +430,31 @@ const App = () => {
       return;
     }
     
+    const feedbackData = {
+      trainId: train.id,
+      wasOnTime,
+      scheduledTime: train.time,
+      station: selectedStation,
+      deviceId: getDeviceFingerprint()
+    };
+
+    try {
+      await fetch(`${API_URL}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(feedbackData),
+      });
+
+      setTrainFeedback(prev => ({
+        ...prev,
+        [train.id]: feedbackData
+      }));
+    } catch (error) {
+      console.error('Error saving feedback:', error);
+    }
+
     if (wasOnTime) {
       // Train was on time, record the feedback with device fingerprint
       setTrainFeedback({
@@ -511,6 +551,26 @@ const App = () => {
   React.useEffect(() => {
     adjustTrainTimes(trainFeedback);
   }, [trainFeedback]);
+
+  // Add this new useEffect after your existing useEffects
+  React.useEffect(() => {
+    const updateFeedback = async () => {
+      const feedback = await fetchFeedback();
+      const feedbackObj = feedback.reduce((acc, item) => {
+        acc[item.trainId] = item;
+        return acc;
+      }, {});
+      setTrainFeedback(feedbackObj);
+    };
+
+    // Initial fetch
+    updateFeedback();
+
+    // Set up polling every 30 seconds
+    const interval = setInterval(updateFeedback, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className={`container ${darkMode ? 'dark' : 'light'}`}>
