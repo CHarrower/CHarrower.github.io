@@ -52,9 +52,6 @@ const ThumbsDownIcon = ({ size = 24 }) => (
   </svg>
 );
 
-// Add these constants at the top of the file, before the App component
-const API_URL = 'https://charrower.github.io/';
-
 // Function to generate a simple device fingerprint
 const getDeviceFingerprint = () => {
   // Create a simple fingerprint based on browser and screen properties
@@ -414,18 +411,6 @@ const App = () => {
     }
   };
   
-  // Add these new functions after your existing state declarations
-  const fetchFeedback = async () => {
-    try {
-      const response = await fetch(`${API_URL}/feedback`);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error fetching feedback:', error);
-      return [];
-    }
-  };
-
   // Modify your existing handleTrainFeedback function
   const handleTrainFeedback = async (train, wasOnTime) => {
     // Check for spam - limit feedback to trains that are within a reasonable time window
@@ -553,32 +538,6 @@ const App = () => {
     setFeedbackTrain(null);
   };
 
-  // Add this function in your App component
-  const exportFeedbackDataForDev = async (event) => {
-    // Only trigger on Ctrl+Shift+E (Windows/Linux) or Cmd+Shift+E (Mac)
-    if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'E') {
-      try {
-        const response = await fetch(`${API_URL}/export-feedback`);
-        const blob = await response.blob();
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `subway_feedback_${new Date().toISOString().split('T')[0]}.csv`;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (error) {
-        console.error('Error exporting feedback:', error);
-      }
-    }
-  };
-
-  // Add this useEffect to listen for the keyboard shortcut
-  React.useEffect(() => {
-    document.addEventListener('keydown', exportFeedbackDataForDev);
-    return () => document.removeEventListener('keydown', exportFeedbackDataForDev);
-  }, []);
-
   // Clock and train schedule updates
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -596,26 +555,6 @@ const App = () => {
   React.useEffect(() => {
     adjustTrainTimes(trainFeedback);
   }, [trainFeedback]);
-
-  // Add this new useEffect after your existing useEffects
-  React.useEffect(() => {
-    const updateFeedback = async () => {
-      const feedback = await fetchFeedback();
-      const feedbackObj = feedback.reduce((acc, item) => {
-        acc[item.trainId] = item;
-        return acc;
-      }, {});
-      setTrainFeedback(feedbackObj);
-    };
-
-    // Initial fetch
-    updateFeedback();
-
-    // Set up polling every 30 seconds
-    const interval = setInterval(updateFeedback, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   if (isLoading) {
     return <LoadingSpinner />;
