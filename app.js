@@ -76,6 +76,13 @@ const getDeviceFingerprint = () => {
   return hash.toString(16); // Convert to hex string
 };
 
+// Loading Spinner Component
+const LoadingSpinner = () => (
+  <div className="loading-spinner">
+    <div className="spinner"></div>
+  </div>
+);
+
 // Main App Component
 const App = () => {
   // Define constants for subway configuration
@@ -161,6 +168,18 @@ const App = () => {
   const [showModal, setShowModal] = React.useState(false);
   const [feedbackTrain, setFeedbackTrain] = React.useState(null);
   const [actualArrivalTime, setActualArrivalTime] = React.useState('');
+
+  // Add a state variable to control the loading spinner
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  // Simulate app initialization
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Simulate a 2-second loading time
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Save preferences and feedback data
   React.useEffect(() => {
@@ -597,6 +616,10 @@ const App = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className={`container ${darkMode ? 'dark' : 'light'}`}>
