@@ -53,7 +53,7 @@ const ThumbsDownIcon = ({ size = 24 }) => (
 );
 
 // Add these constants at the top of the file, before the App component
-const API_URL = 'http://localhost:3001/api';
+const API_URL = 'https://your-server-url.com/api';
 
 // Function to generate a simple device fingerprint
 const getDeviceFingerprint = () => {
