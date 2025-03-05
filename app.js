@@ -83,6 +83,41 @@ const getDeviceFingerprint = () => {
   return hash.toString(16); // Convert to hex string
 };
 
+//===============================================
+// FEEDBACK ANALYSIS
+//===============================================
+const analyzeFeedbackPatterns = () => {
+  // Only analyze feedback from the last 24 hours
+  const recentFeedback = Object.values(trainFeedback).filter(feedback => {
+    const feedbackTime = new Date(feedback.timestamp);
+    const hoursDiff = (new Date() - feedbackTime) / (1000 * 60 * 60);
+    return hoursDiff < 24;
+  });
+
+  // Group feedback by station and direction
+  const stationDelays = {};
+  recentFeedback.forEach(feedback => {
+    const key = `${feedback.station}-${feedback.direction}`;
+    if (!stationDelays[key]) {
+      stationDelays[key] = [];
+    }
+    if (feedback.timeDifference) {
+      stationDelays[key].push(feedback.timeDifference);
+    }
+  });
+
+  // Calculate average delays for each station-direction combination
+  const averageDelays = {};
+  Object.entries(stationDelays).forEach(([key, delays]) => {
+    if (delays.length > 0) {
+      const sum = delays.reduce((a, b) => a + b, 0);
+      averageDelays[key] = Math.round(sum / delays.length);
+    }
+  });
+
+  return averageDelays;
+};
+
 // Main App Component
 const App = () => {
   //===============================================
@@ -266,6 +301,7 @@ const App = () => {
   // Calculates arrival times based on frequency and station positions
   // Generate Inner Circle (clockwise) trains
   const generateInnerCircleTrains = (currentTimeInMinutes, frequency, service) => {
+    const averageDelays = analyzeFeedbackPatterns();
     const selectedStationInfo = findStation(selectedStation);
     const trains = [];
     
@@ -280,7 +316,8 @@ const App = () => {
     // Generate trains for the full service day
     for (let trainTime = startTime; trainTime <= endTime; trainTime += frequency) {
       // Time when this train reaches the selected station
-      const arrivalTime = (trainTime + timeToSelectedStation - TIME_OFFSET);
+      const stationDelay = averageDelays[`${selectedStation}-Inner Circle`] || 0;
+      const arrivalTime = (trainTime + timeToSelectedStation - TIME_OFFSET + stationDelay);
       
       // Only include trains that haven't arrived yet and are within the service hours
       const minutesUntil = Math.ceil(arrivalTime - currentTimeInMinutes);
@@ -311,6 +348,7 @@ const App = () => {
   
   // Generate Outer Circle (counter-clockwise) trains
   const generateOuterCircleTrains = (currentTimeInMinutes, frequency, service) => {
+    const averageDelays = analyzeFeedbackPatterns();
     const selectedStationInfo = findStation(selectedStation);
     const trains = [];
     
@@ -324,7 +362,8 @@ const App = () => {
     // Generate trains for the full service day
     for (let trainTime = startTime; trainTime <= endTime; trainTime += frequency) {
       // Time when this train reaches the selected station
-      const arrivalTime = (trainTime + timeToSelectedStation - TIME_OFFSET);
+      const stationDelay = averageDelays[`${selectedStation}-Outer Circle`] || 0;
+      const arrivalTime = (trainTime + timeToSelectedStation - TIME_OFFSET + stationDelay);
       
       // Only include trains that haven't arrived yet and are within the service hours
       const minutesUntil = Math.ceil(arrivalTime - currentTimeInMinutes);
@@ -578,6 +617,7 @@ const App = () => {
 
           {isServiceRunning() ? (
             <div>
+              <FeedbackSummary />
               <h3 className={`train-title ${darkMode ? 'dark' : 'light'}`}>
                 Next Trains:
               </h3>
@@ -699,6 +739,32 @@ const App = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// Add a feedback summary component:
+const FeedbackSummary = () => {
+  const averageDelays = analyzeFeedbackPatterns();
+  const currentStationDelays = {
+    inner: averageDelays[`${selectedStation}-Inner Circle`] || 0,
+    outer: averageDelays[`${selectedStation}-Outer Circle`] || 0
+  };
+
+  // Add this before the train listings in the render section
+  return (
+    <div className={`feedback-summary ${darkMode ? 'dark' : 'light'}`}>
+      <small>
+        Based on recent feedback:
+        {currentStationDelays.inner !== 0 && 
+          ` Inner Circle trains ${Math.abs(currentStationDelays.inner)} mins 
+           ${currentStationDelays.inner > 0 ? 'late' : 'early'}`}
+        {currentStationDelays.outer !== 0 && 
+          ` • Outer Circle trains ${Math.abs(currentStationDelays.outer)} mins 
+           ${currentStationDelays.outer > 0 ? 'late' : 'early'}`}
+        {currentStationDelays.inner === 0 && currentStationDelays.outer === 0 && 
+          ' Trains running to schedule'}
+      </small>
     </div>
   );
 };
