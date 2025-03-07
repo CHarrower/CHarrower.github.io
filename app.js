@@ -173,7 +173,7 @@ const App = () => {
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 6000); // Simulate a 6-second loading time
+    }, 6000); // Simulate a -second loading time
 
     return () => clearTimeout(timer);
   }, []);
