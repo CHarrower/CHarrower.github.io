@@ -474,8 +474,8 @@ const App = () => {
 
   // Update your handleTrainFeedback function
   const handleTrainFeedback = (train, wasOnTime) => {
-    if (train.minutesUntil > 5) {
-      alert("Feedback can only be provided when a train is within 5 minutes of arrival.");
+    if (train.minutesUntil > 2) { // Changed from 5 to 2 minutes
+      alert("Feedback can only be provided when a train is within 2 minutes of arrival.");
       return;
     }
 
@@ -518,8 +518,6 @@ const App = () => {
     // Convert both times to minutes for easy comparison
     const scheduledTotalMinutes = scheduledHours * 60 + scheduledMinutes;
     const actualTotalMinutes = inputHours * 60 + inputMinutes;
-    const now = new Date();
-    const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
     
     // Check if the actual time is too far from the scheduled time (more than 30 minutes)
     const timeDifference = Math.abs(actualTotalMinutes - scheduledTotalMinutes);
@@ -529,13 +527,9 @@ const App = () => {
       }
     }
     
-    // Check if the time is in the future
-    if (actualTotalMinutes > currentTotalMinutes) {
-      alert('Please enter a time in the past. You cannot report arrival times in the future.');
-      return;
-    }
+    // Remove the future time check to allow future times
     
-    // Save the feedback with actual arrival time and device fingerprint
+    // Save the feedback with actual arrival time
     setTrainFeedback({
       ...trainFeedback,
       [feedbackTrain.id]: {
