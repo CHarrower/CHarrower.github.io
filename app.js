@@ -80,6 +80,58 @@ const LoadingSpinner = () => (
   </div>
 );
 
+// Add this before your App component
+class TimeAdjustmentManager {
+  constructor() {
+    this.adjustments = JSON.parse(localStorage.getItem('timeAdjustments') || '{}');
+    this.feedbackCount = JSON.parse(localStorage.getItem('feedbackCount') || '{}');
+  }
+
+  addFeedback(trainTime, direction, wasOnTime, actualTime) {
+    const key = `${direction}-${trainTime}`;
+    
+    if (!this.feedbackCount[key]) {
+      this.feedbackCount[key] = { count: 0, totalDiff: 0 };
+    }
+
+    if (!wasOnTime && actualTime) {
+      const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+      const [scheduledHours, scheduledMinutes] = trainTime.split(':').map(Number);
+      const timeDiff = (actualHours * 60 + actualMinutes) - (scheduledHours * 60 + scheduledMinutes);
+      
+      this.feedbackCount[key].count++;
+      this.feedbackCount[key].totalDiff += timeDiff;
+
+      // If we have 3 or more feedbacks, calculate average adjustment
+      if (this.feedbackCount[key].count >= 3) {
+        const avgDiff = Math.round(this.feedbackCount[key].totalDiff / this.feedbackCount[key].count);
+        this.adjustments[key] = avgDiff;
+      }
+    }
+
+    this.save();
+  }
+
+  getAdjustedTime(time, direction) {
+    const key = `${direction}-${time}`;
+    const adjustment = this.adjustments[key] || 0;
+    
+    if (adjustment === 0) return time;
+
+    const [hours, minutes] = time.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + adjustment;
+    const adjustedHours = Math.floor(totalMinutes / 60) % 24;
+    const adjustedMinutes = totalMinutes % 60;
+    
+    return `${String(adjustedHours).padStart(2, '0')}:${String(adjustedMinutes).padStart(2, '0')}`;
+  }
+
+  save() {
+    localStorage.setItem('timeAdjustments', JSON.stringify(this.adjustments));
+    localStorage.setItem('feedbackCount', JSON.stringify(this.feedbackCount));
+  }
+}
+
 // Main App Component
 const App = () => {
   // Define constants for subway configuration
@@ -272,7 +324,10 @@ const App = () => {
         // Convert to hours and minutes for display
         const arrivalHour = Math.floor(arrivalTime / 60) % 24;
         const arrivalMinute = Math.floor(arrivalTime % 60);
-        const timeStr = `${String(arrivalHour).padStart(2, '0')}:${String(arrivalMinute).padStart(2, '0')}`;
+        const timeStr = timeManager.getAdjustedTime(
+          `${String(arrivalHour).padStart(2, '0')}:${String(arrivalMinute).padStart(2, '0')}`,
+          'Inner Circle'
+        );
         
         // Generate unique ID for this train
         const trainId = `inner-${selectedStation}-${timeStr}-${currentTime.toDateString()}`;
@@ -316,7 +371,10 @@ const App = () => {
         // Convert to hours and minutes for display
         const arrivalHour = Math.floor(arrivalTime / 60) % 24;
         const arrivalMinute = Math.floor(arrivalTime % 60);
-        const timeStr = `${String(arrivalHour).padStart(2, '0')}:${String(arrivalMinute).padStart(2, '0')}`;
+        const timeStr = timeManager.getAdjustedTime(
+          `${String(arrivalHour).padStart(2, '0')}:${String(arrivalMinute).padStart(2, '0')}`,
+          'Outer Circle'
+        );
         
         // Generate unique ID for this train
         const trainId = `outer-${selectedStation}-${timeStr}-${currentTime.toDateString()}`;
@@ -411,75 +469,33 @@ const App = () => {
     }
   };
   
-  // Modify your existing handleTrainFeedback function
-  const handleTrainFeedback = async (train, wasOnTime) => {
-    // Check for spam - limit feedback to trains that are within a reasonable time window
-    // Only allow feedback for trains arriving within 5 minutes
+  // Add this after your existing state declarations
+  const timeManager = React.useMemo(() => new TimeAdjustmentManager(), []);
+
+  // Update your handleTrainFeedback function
+  const handleTrainFeedback = (train, wasOnTime) => {
     if (train.minutesUntil > 5) {
       alert("Feedback can only be provided when a train is within 5 minutes of arrival.");
       return;
     }
-    
-    // Check if the user has already provided feedback for multiple trains in the last minute
-    // This prevents rapid-fire spam clicking
-    const recentFeedbackCount = Object.values(trainFeedback)
-      .filter(feedback => {
-        const feedbackTime = new Date(feedback.timestamp);
-        const timeDiff = (new Date() - feedbackTime) / 1000 / 60; // difference in minutes
-        return timeDiff < 1; // feedback in the last minute
-      }).length;
-    
-    if (recentFeedbackCount >= 3) {
-      alert("You're providing feedback too quickly. Please wait a moment before trying again.");
-      return;
-    }
-    
-    const feedbackData = {
-      trainId: train.id,
-      wasOnTime,
-      scheduledTime: train.time,
-      station: selectedStation,
-      deviceId: getDeviceFingerprint()
-    };
-
-    try {
-      await fetch(`${API_URL}/feedback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(feedbackData),
-      });
-
-      setTrainFeedback(prev => ({
-        ...prev,
-        [train.id]: feedbackData
-      }));
-    } catch (error) {
-      console.error('Error saving feedback:', error);
-    }
 
     if (wasOnTime) {
-      // Train was on time, record the feedback with device fingerprint
-      setTrainFeedback({
-        ...trainFeedback,
+      setTrainFeedback(prev => ({
+        ...prev,
         [train.id]: {
           wasOnTime: true,
-          scheduledTime: train.time,
-          timestamp: new Date().toISOString(),
-          station: selectedStation,
-          deviceId: getDeviceFingerprint() // Add device fingerprint to track submissions
+          timestamp: new Date().toISOString()
         }
-      });
+      }));
+      timeManager.addFeedback(train.time, train.direction, true);
     } else {
-      // Train was late or early, open modal to get actual time
       setFeedbackTrain(train);
       setActualArrivalTime('');
       setShowModal(true);
     }
   };
-  
-  // Submit actual arrival time from modal with validation
+
+  // Update your submitActualTime function
   const submitActualTime = () => {
     // Validate time format
     if (!/^\d{2}:\d{2}$/.test(actualArrivalTime)) {
@@ -524,16 +540,18 @@ const App = () => {
       ...trainFeedback,
       [feedbackTrain.id]: {
         wasOnTime: false,
-        scheduledTime: feedbackTrain.time,
         actualTime: actualArrivalTime,
-        timestamp: new Date().toISOString(),
-        station: selectedStation,
-        deviceId: getDeviceFingerprint(),
-        timeDifference: timeDifference // Store the difference for analysis
+        timestamp: new Date().toISOString()
       }
     });
-    
-    // Close the modal
+
+    timeManager.addFeedback(
+      feedbackTrain.time,
+      feedbackTrain.direction,
+      false,
+      actualArrivalTime
+    );
+
     setShowModal(false);
     setFeedbackTrain(null);
   };
