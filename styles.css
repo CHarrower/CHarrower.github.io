@@ -32,11 +32,12 @@ body {
   width: 100%;
 }
 
+/* Update existing container styles */
 .container {
   min-height: 100vh;
-  padding: 1rem;
+  padding: 0.5rem; /* Reduced padding for mobile */
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Changed from center to avoid squishing on small screens */
   justify-content: center;
   transition: background-color 0.2s;
 }
@@ -49,12 +50,14 @@ body {
   background-color: #111827;
 }
 
+/* Update card styles */
 .card {
   width: 100%;
   max-width: 400px;
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  margin: 0.5rem auto; /* Center the card with margin */
 }
 
 .card.light {
@@ -85,13 +88,14 @@ body {
   gap: 0.75rem;
 }
 
+/* Update header styles for better mobile display */
 .station-text h2 {
-  font-size: 1.5rem;
+  font-size: 1.25rem; /* Smaller font size for mobile */
   font-weight: 700;
 }
 
 .station-text p {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   opacity: 0.9;
 }
 
@@ -157,22 +161,27 @@ body {
   color: #e5e7eb;
 }
 
+/* Make direction options more mobile-friendly */
 .direction-options {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 0.5rem;
+  width: 100%;
 }
 
 .direction-option {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem;
   border-radius: 0.375rem;
   border: 1px solid #d1d5db;
   cursor: pointer;
   background-color: white;
   transition: all 0.2s;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
 }
 
 .dark .direction-option {
@@ -238,16 +247,22 @@ body {
   background: linear-gradient(to right, #f97316, #fb923c);
 }
 
+/* Update train cards for mobile */
 .train-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
 }
 
 .train-time {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .train-time-text {
@@ -279,18 +294,20 @@ body {
   margin-top: 0.75rem;
 }
 
+/* Make feedback buttons more touch-friendly */
 .feedback-btn {
   background: rgba(255, 255, 255, 0.2);
   border: none;
   border-radius: 9999px;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.75rem; /* Larger touch target */
+  height: 2.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: white;
   transition: all 0.2s;
+  margin: 0 0.25rem;
 }
 
 .feedback-btn:hover {
@@ -340,12 +357,14 @@ body {
   z-index: 50;
 }
 
+/* Update modal styles for mobile */
 .modal-content {
   background: white;
   border-radius: 0.5rem;
-  width: 90%;
+  width: 95%;
   max-width: 350px;
-  padding: 1.5rem;
+  padding: 1rem;
+  margin: 1rem;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
@@ -390,6 +409,8 @@ body {
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .modal-btn {
@@ -399,6 +420,8 @@ body {
   cursor: pointer;
   border: none;
   font-size: 0.875rem;
+  width: 100%;
+  padding: 0.75rem; /* Larger touch target */
 }
 
 .modal-btn.cancel {
@@ -525,3 +548,60 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* Add responsive font sizes */
+@media (max-width: 360px) {
+  .station-text h2 {
+    font-size: 1.1rem;
+  }
+  
+  .time-text {
+    font-size: 1rem;
+  }
+  
+  .train-time-text {
+    font-size: 1rem;
+  }
+  
+  .direction-badge {
+    font-size: 0.75rem;
+  }
+  
+  .feedback-label {
+    font-size: 0.6rem;
+  }
+}
+
+/* Add better spacing for small screens */
+@media (max-width: 480px) {
+  .card-content {
+    padding: 1rem;
+  }
+  
+  .trains-container {
+    gap: 0.5rem;
+  }
+  
+  .train-card {
+    padding: 0.75rem;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .modal-btn {
+    width: 100%;
+    padding: 0.75rem; /* Larger touch target */
+  }
+}
+
+/* Add viewport height fixes for mobile browsers */
+@supports (-webkit-touch-callout: none) {
+  .container {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Add meta viewport tag to ensure proper scaling */
