@@ -474,11 +474,6 @@ const App = () => {
 
   // Update your handleTrainFeedback function
   const handleTrainFeedback = (train, wasOnTime) => {
-    if (train.minutesUntil > 2) { // Changed from 5 to 2 minutes
-      alert("Feedback can only be provided when a train is within 2 minutes of arrival.");
-      return;
-    }
-
     if (wasOnTime) {
       setTrainFeedback(prev => ({
         ...prev,
